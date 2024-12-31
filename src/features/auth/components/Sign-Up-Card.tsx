@@ -22,18 +22,15 @@ import { useForm } from 'react-hook-form';
 import { FaGithub } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { z } from 'zod';
+import { useAppSignup } from '../api/useAppSignup';
+import { signupSchema } from '../schemas';
 
-const formSchema = z.object({
-  email: z.string().email('Email is invalid'),
-  password: z.string().min(8, 'Password must be at least 8 digits'),
-  fullName: z.string().min(1, 'Full name is required'),
-});
-
-type SignUpFormType = z.infer<typeof formSchema>;
+type SignUpFormType = z.infer<typeof signupSchema>;
 
 export function SignUpCard() {
+  const { mutate: handleSignup, isPending } = useAppSignup();
   const form = useForm<SignUpFormType>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(signupSchema),
     defaultValues: {
       email: '',
       password: '',
@@ -42,7 +39,7 @@ export function SignUpCard() {
   });
 
   const onSubmit = (values: SignUpFormType) => {
-    console.log('PAYLOAD -> ', values);
+    handleSignup({ json: values });
 
     form.reset();
   };
