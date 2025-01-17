@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/appwrite';
 import { setHttpCookie } from '@/lib/cookies';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
+import { deleteCookie } from 'hono/cookie';
 import { AppwriteException, ID } from 'node-appwrite';
 import { AUTH_COOKIE } from '../constants';
 import { loginSchema, signupSchema } from '../schemas';
@@ -83,6 +84,8 @@ const app = new Hono()
   // POST / logout
   .post('/logout', async (context) => {
     const { json, status, req } = context;
+
+    deleteCookie(context, AUTH_COOKIE);
 
     status(200);
     return json({
