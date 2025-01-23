@@ -1,18 +1,16 @@
-'use client';
-import { useCurrentUser } from '@/features/auth/api/useCurrentUser';
+import { getCurrentUser } from '@/features/auth/actions';
+import UserButton from '@/features/auth/components/UserButton';
+import { redirect } from 'next/navigation';
 
-export default function HomePage() {
-  const { isPending, data } = useCurrentUser();
+export default async function HomePage() {
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser) redirect('/sign-in');
 
   return (
     <main className='gap-4 p-8'>
       <h1 className='font-bold mb-8 text-2xl'>Jira Clone</h1>
-
-      <div className='p-8 bg-gray-100 rounded-xl text-xl'>
-        {!isPending && <p>{data?.user.email}</p>}
-        {isPending && <p>Loading...</p>}
-        {!isPending && !data && <p>Unauthorized</p>}
-      </div>
+      <UserButton />
     </main>
   );
 }
