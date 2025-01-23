@@ -28,7 +28,7 @@ import { signupSchema } from '../schemas';
 type SignUpFormType = z.infer<typeof signupSchema>;
 
 export function SignUpCard() {
-  const { mutate: handleSignup, isPending } = useAppSignup();
+  const { mutate: handleSignup } = useAppSignup();
   const form = useForm<SignUpFormType>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
