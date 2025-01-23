@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/appwrite';
 import { setHttpCookie } from '@/lib/cookies';
+import { sessionMiddleware } from '@/lib/session-middleware';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { deleteCookie } from 'hono/cookie';
@@ -33,7 +34,7 @@ const app = new Hono()
       return json({
         status: 'success',
         message: 'Login Successful!',
-        data: { email },
+        data: { user: { email } },
       });
     } catch (error: unknown) {
       console.log('API ERROR -> ', error);
@@ -46,8 +47,8 @@ const app = new Hono()
     }
   })
   // POST / sign-up
-  .post('/sign-up', zValidator('json', signupSchema), async (context) => {
-    const { json, status, req } = context;
+  .post('/sign-up', zValidator('json', signupSchema), async (ctx) => {
+    const { json, status, req } = ctx;
 
     const body = req.valid('json');
     const { email, password, fullName } = body;
@@ -59,7 +60,7 @@ const app = new Hono()
       const session = await account.createEmailPasswordSession(email, password);
 
       setHttpCookie({
-        context,
+        context: ctx,
         name: AUTH_COOKIE,
         value: session.secret,
       });
@@ -82,15 +83,18 @@ const app = new Hono()
     }
   })
   // POST / logout
-  .post('/logout', async (context) => {
-    const { json, status, req } = context;
+  .post('/logout', sessionMiddleware, async (ctx) => {
+    const { json, status } = ctx;
 
-    deleteCookie(context, AUTH_COOKIE);
+    const account = ctx.get('account');
+
+    deleteCookie(ctx, AUTH_COOKIE);
+    await account.deleteSession('current');
 
     status(200);
     return json({
       status: 'success',
-      message: 'Logout Successfully!',
+      message: 'Logout Successful!',
     });
   });
 
