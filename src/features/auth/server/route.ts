@@ -9,9 +9,21 @@ import { AUTH_COOKIE } from '../constants';
 import { loginSchema, signupSchema } from '../schemas';
 
 const app = new Hono()
-  // POST / login
-  .post('/login', zValidator('json', loginSchema), async (context) => {
-    const { json, status, req } = context;
+  // GET / Current logged-in user
+  .get('/current', sessionMiddleware, async (ctx) => {
+    const { json, status } = ctx;
+    const user = ctx.get('user');
+
+    status(200);
+    return json({
+      status: 'success',
+      message: 'User Retrieved Successfully!',
+      data: { user },
+    });
+  })
+  // POST / Login
+  .post('/login', zValidator('json', loginSchema), async (ctx) => {
+    const { json, status, req } = ctx;
 
     // Validate the request body
     const body = req.valid('json');
@@ -25,7 +37,7 @@ const app = new Hono()
 
       // Set the appwrite session cookie
       setHttpCookie({
-        context,
+        context: ctx,
         name: AUTH_COOKIE,
         value: session.secret,
       });
@@ -46,7 +58,7 @@ const app = new Hono()
       });
     }
   })
-  // POST / sign-up
+  // POST / Sign up
   .post('/sign-up', zValidator('json', signupSchema), async (ctx) => {
     const { json, status, req } = ctx;
 
@@ -82,7 +94,7 @@ const app = new Hono()
       });
     }
   })
-  // POST / logout
+  // POST / Logout
   .post('/logout', sessionMiddleware, async (ctx) => {
     const { json, status } = ctx;
 
