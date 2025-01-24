@@ -85,7 +85,7 @@ export function SignInCard() {
                 </FormItem>
               )}
             />
-            <Button className='w-full' size='large'>
+            <Button className='w-full' size='large' disabled={isPending}>
               {isPending ? 'Loading...' : 'Sign In'}
             </Button>
           </form>

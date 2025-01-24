@@ -28,7 +28,7 @@ import { signupSchema } from '../schemas';
 type SignUpFormType = z.infer<typeof signupSchema>;
 
 export function SignUpCard() {
-  const { mutate: handleSignup } = useAppSignup();
+  const { mutate: handleSignup, isPending } = useAppSignup();
   const form = useForm<SignUpFormType>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -119,8 +119,8 @@ export function SignUpCard() {
               )}
             />
 
-            <Button className='w-full' size='large'>
-              Sign Up
+            <Button className='w-full' size='large' disabled={isPending}>
+              {isPending ? 'Loading...' : 'Sign Up'}
             </Button>
           </form>
         </Form>

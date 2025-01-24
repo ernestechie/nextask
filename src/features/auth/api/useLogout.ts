@@ -1,11 +1,14 @@
 import { client } from '@/lib/rpc';
+import { CurrentUser } from '@/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { InferResponseType } from 'hono';
+import { useRouter } from 'next/navigation';
 
 type ResponseType = InferResponseType<(typeof client.api.auth.logout)['$post']>;
 
 export const useAppLogout = () => {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const logoutMutation = useMutation<ResponseType, Error>({
     mutationFn: async () => {
@@ -17,7 +20,8 @@ export const useAppLogout = () => {
       return data;
     },
     onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ['current-user'] });
+      router.refresh();
+      queryClient.invalidateQueries({ queryKey: [CurrentUser.value] });
     },
   });
 

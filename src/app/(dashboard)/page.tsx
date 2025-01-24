@@ -8,9 +8,9 @@ export default async function HomePage() {
   if (!currentUser) redirect('/sign-in');
 
   return (
-    <main className='gap-4 p-8'>
+    <section className='gap-4 p-8'>
       <h1 className='font-bold mb-8 text-2xl'>Jira Clone</h1>
       <UserButton />
-    </main>
+    </section>
   );
 }
