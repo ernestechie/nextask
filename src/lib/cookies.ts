@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import { setCookie } from 'hono/cookie';
 
-const defaultCookieAge = 60 * 60 * 24 * 7; // 7 days
+const defaultCookieAge = 60 * 60 * 24 * 1; // 1 day
 
 type SetCookieProps = {
   context: Context;

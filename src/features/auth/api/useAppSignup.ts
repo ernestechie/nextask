@@ -1,6 +1,7 @@
 import { client } from '@/lib/rpc';
 import { useMutation } from '@tanstack/react-query';
 import { InferRequestType, InferResponseType } from 'hono';
+import { toast } from 'sonner';
 
 type ResponseType = InferResponseType<
   (typeof client.api.auth)['sign-up']['$post']
@@ -13,11 +14,17 @@ export const useAppSignup = () => {
   const signupMutation = useMutation<ResponseType, Error, RequestType>({
     mutationFn: async ({ json }) => {
       const response = await client.api.auth['sign-up']['$post']({ json });
-      const data = await response.json();
 
-      console.log('RESPONSE -> ', data);
+      if (!response.ok) throw new Error('Failed to register account');
 
-      return data;
+      return await response.json();
+    },
+
+    onSuccess() {
+      toast.success('Welcome to NexTask!');
+    },
+    onError(err) {
+      toast.error(err.message);
     },
   });
 

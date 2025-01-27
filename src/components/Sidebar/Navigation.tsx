@@ -57,7 +57,7 @@ export default function Navigation() {
               <Link href={href}>
                 <span
                   className={cn(
-                    'flex items-center gap-2 p-3 rounded-md font-medium hover:text-primary transition text-neutral-600 hover:bg-neutral-100',
+                    'flex items-center gap-2 p-3 rounded-md font-medium hover:text-primary transition text-neutral-600 hover:bg-gray-100',
                     isActive &&
                       'bg-white shadow-sm hover:opacity-100 text-primary'
                   )}

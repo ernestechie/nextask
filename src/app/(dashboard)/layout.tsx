@@ -1,3 +1,4 @@
+import Navbar from '@/components/Navbar/Navbar';
 import Sidebar from '@/components/Sidebar/Sidebar';
 import React from 'react';
 
@@ -14,8 +15,9 @@ export default function DashboardLayout({
           <Sidebar />
         </div>
 
-        <div className='lg:pl-[264px]'>
-          {/* TODO - Navbar */}
+        <div className='lg:pl-[264px] w-full'>
+          {/* Navbar */}
+          <Navbar />
           <div className='mx-auto max-w-screen-2xl h-full'>
             <main className='h-full py-8 px-6 flex flex-col gap-4'>
               {children}
