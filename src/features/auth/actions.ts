@@ -20,7 +20,7 @@ export const getCurrentUser = async () => {
     const account = new Account(client);
     return await account.get();
   } catch (error) {
-    console.log('Error -> ', error);
+    console.log(error);
     return null;
   }
 };

@@ -20,6 +20,7 @@ import { useAppLogin } from '../api/useAppLogin';
 import { loginSchema } from '../schemas';
 
 type SignInFormType = z.infer<typeof loginSchema>;
+
 export function SignInCard() {
   const { mutate: handleSignIn, isPending } = useAppLogin();
 
@@ -85,7 +86,7 @@ export function SignInCard() {
                 </FormItem>
               )}
             />
-            <Button className='w-full' size='large'>
+            <Button className='w-full' size='large' disabled={isPending}>
               {isPending ? 'Loading...' : 'Sign In'}
             </Button>
           </form>

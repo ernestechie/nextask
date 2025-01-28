@@ -95,12 +95,12 @@ const app = new Hono()
     }
   })
   // POST / Logout
-  .post('/logout', sessionMiddleware, async (ctx) => {
-    const { json, status } = ctx;
+  .post('/logout', sessionMiddleware, async (context) => {
+    const { json, status, get } = context;
 
-    const account = ctx.get('account');
+    const account = get('account');
 
-    deleteCookie(ctx, AUTH_COOKIE);
+    deleteCookie(context, AUTH_COOKIE);
     await account.deleteSession('current');
 
     status(200);
