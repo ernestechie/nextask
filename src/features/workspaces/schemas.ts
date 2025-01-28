@@ -1,17 +1,17 @@
+import { processFileInput } from '@/lib/utils';
 import { z } from 'zod';
 
-export const createWorkspaceSchema = z.object({
-  name: z.string().trim().min(1, 'Workspace name is required').max(256),
-  // imageUrl: z
-  //   .union([
-  //     z.instanceof(File),
-  //     z.string().transform((value) => (value === '' ? undefined : value)),
-  //   ])
-  //   .optional(),
-  image: z
+export const fileOrUrlSchema = z.preprocess(
+  processFileInput,
+  z
     .union([
       z.instanceof(File),
       z.string().transform((value) => value || undefined),
     ])
-    .optional(),
+    .optional()
+);
+
+export const createWorkspaceSchema = z.object({
+  name: z.string().trim().min(1, 'Workspace name is required').max(256),
+  image: fileOrUrlSchema,
 });

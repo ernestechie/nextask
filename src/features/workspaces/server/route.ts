@@ -19,11 +19,11 @@ const app = new Hono()
   // POST | Create a new workspace
   .post(
     '/',
-    zValidator('json', createWorkspaceSchema),
+    zValidator('form', createWorkspaceSchema),
     sessionMiddleware,
     async ({ json, status, req, get }) => {
       try {
-        const body = req.valid('json');
+        const body = req.valid('form');
         const { name, image } = body;
 
         // Get the entities from current user session
@@ -32,7 +32,8 @@ const app = new Hono()
         const databases = get('databases');
 
         // Handle Image uploading to appwrite.
-        let uploadedImageUrl = '';
+        let imageUrl: string | undefined;
+
         const bucketId = ENV.APPWRITE_IMAGES_STORAGE_BUCKET_ID;
 
         if (image instanceof File) {
@@ -40,15 +41,15 @@ const app = new Hono()
 
           const arrayBuffer = await storage.getFilePreview(bucketId, file.$id);
 
-          uploadedImageUrl = `data:image/png;base64,${Buffer.from(
-            arrayBuffer
-          ).toString('base64')}`;
+          imageUrl = `data:image/png;base64,${Buffer.from(arrayBuffer).toString(
+            'base64'
+          )}`;
         }
 
         const requestPayload = {
           name,
           userId: user.$id,
-          imageUrl: uploadedImageUrl,
+          imageUrl,
         };
 
         const workspace = await databases.createDocument(

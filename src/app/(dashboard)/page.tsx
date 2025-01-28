@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 export default async function HomePage() {
   const currentUser = await getCurrentUser();
 
+  console.log('Current User -> ', currentUser);
+
   // if (!currentUser) redirect('/sign-in');
 
   return (

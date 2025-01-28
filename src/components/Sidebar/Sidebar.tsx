@@ -9,7 +9,7 @@ export default function Sidebar() {
       <div className='p-4'>
         <Link href='/'>
           <p className='font-extrabold text-3xl text-center'>
-            Nex<span className='text-blue-600'>Chat</span>
+            Nex<span className='text-blue-600'>Task</span>
           </p>
         </Link>
       </div>
