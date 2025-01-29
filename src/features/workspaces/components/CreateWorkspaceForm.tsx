@@ -55,7 +55,7 @@ export default function CreateWorkspaceForm({
     const file = e.target.files?.[0];
     if (file) {
       form.setValue('image', file);
-      ref.current?.removeAttribute('files');
+      // ref.current?.removeAttribute('files');
     }
   };
 
@@ -109,8 +109,8 @@ export default function CreateWorkspaceForm({
                                 src={src}
                                 alt='Logo'
                                 className='object-cover'
-                                width={200}
-                                height={200}
+                                width={100}
+                                height={100}
                               />
                             </div>
                           ) : (

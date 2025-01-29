@@ -1,6 +1,6 @@
 'use client';
 import { MenuIcon } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+
 import React, { useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
@@ -8,7 +8,6 @@ import Navigation from './Navigation';
 
 export default function MobileSidebar() {
   const [modalOpen, setModalOpen] = React.useState(false);
-  const pathname = usePathname();
 
   useEffect(() => {
     setModalOpen(false);

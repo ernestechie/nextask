@@ -2,8 +2,16 @@ import { ENV } from '@/lib/env';
 import { sessionMiddleware } from '@/lib/session-middleware';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
+
 import { ID } from 'node-appwrite';
 import { createWorkspaceSchema } from '../schemas';
+
+const bufferToBase64 = (input: ArrayBuffer, type: string): string => {
+  const buffer = Buffer.from(input);
+  const url = buffer.toString('base64');
+
+  return `data:${type};base64,${url}`;
+};
 
 const app = new Hono()
   .get('/', sessionMiddleware, async (ctx) => {
@@ -26,6 +34,8 @@ const app = new Hono()
         const body = req.valid('form');
         const { name, image } = body;
 
+        console.log('Body -> ', body);
+
         // Get the entities from current user session
         const user = get('user');
         const storage = get('storage');
@@ -37,13 +47,25 @@ const app = new Hono()
         const bucketId = ENV.APPWRITE_IMAGES_STORAGE_BUCKET_ID;
 
         if (image instanceof File) {
+          console.log(image.type);
           const file = await storage.createFile(bucketId, ID.unique(), image);
+
+          console.log(file);
 
           const arrayBuffer = await storage.getFilePreview(bucketId, file.$id);
 
-          imageUrl = `data:image/png;base64,${Buffer.from(arrayBuffer).toString(
-            'base64'
-          )}`;
+          imageUrl = bufferToBase64(arrayBuffer, image.type);
+
+          // const promise = storage.createFile(bucketId, ID.unique(), image);
+
+          // promise.then(
+          //   function (response) {
+          //     console.log(response); // Success
+          //   },
+          //   function (error) {
+          //     console.log(error); // Failure
+          //   }
+          // );
         }
 
         const requestPayload = {
