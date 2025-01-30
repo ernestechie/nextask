@@ -55,7 +55,6 @@ export default function CreateWorkspaceForm({
     const file = e.target.files?.[0];
     if (file) {
       form.setValue('image', file);
-      // ref.current?.removeAttribute('files');
     }
   };
 

@@ -1,8 +1,8 @@
 import { ENV } from '@/lib/env';
 import { sessionMiddleware } from '@/lib/session-middleware';
+import { getMimeType } from '@/lib/utils';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
-
 import { ID } from 'node-appwrite';
 import { createWorkspaceSchema } from '../schemas';
 
@@ -32,9 +32,8 @@ const app = new Hono()
     async ({ json, status, req, get }) => {
       try {
         const body = req.valid('form');
-        const { name, image } = body;
 
-        console.log('Body -> ', body);
+        const { name, image } = body;
 
         // Get the entities from current user session
         const user = get('user');
@@ -42,31 +41,25 @@ const app = new Hono()
         const databases = get('databases');
 
         // Handle Image uploading to appwrite.
-        let imageUrl: string | undefined;
-
         const bucketId = ENV.APPWRITE_IMAGES_STORAGE_BUCKET_ID;
 
-        if (image instanceof File) {
-          console.log(image.type);
-          const file = await storage.createFile(bucketId, ID.unique(), image);
+        const mimeType = await getMimeType(image);
+        const buffer = await image.arrayBuffer();
 
-          console.log(file);
+        const validatedFile = new File([buffer], image.name, {
+          type: mimeType,
+        });
 
-          const arrayBuffer = await storage.getFilePreview(bucketId, file.$id);
+        const file = await storage.createFile(
+          bucketId,
+          ID.unique(),
+          validatedFile
+        );
 
-          imageUrl = bufferToBase64(arrayBuffer, image.type);
+        console.log('File -> ', file);
 
-          // const promise = storage.createFile(bucketId, ID.unique(), image);
-
-          // promise.then(
-          //   function (response) {
-          //     console.log(response); // Success
-          //   },
-          //   function (error) {
-          //     console.log(error); // Failure
-          //   }
-          // );
-        }
+        const arrayBuffer = await storage.getFilePreview(bucketId, file.$id);
+        const imageUrl = bufferToBase64(arrayBuffer, image.type);
 
         const requestPayload = {
           name,
