@@ -1,9 +1,10 @@
 import { ENV } from '@/lib/env';
 import { sessionMiddleware } from '@/lib/session-middleware';
-import { getMimeType } from '@/lib/utils';
+// import { getMimeType } from '@/lib/utils';
+import { MemberRole } from '@/features/members/types';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
-import { ID } from 'node-appwrite';
+import { ID, Query } from 'node-appwrite';
 import { createWorkspaceSchema } from '../schemas';
 
 const bufferToBase64 = (input: ArrayBuffer, type: string): string => {
@@ -17,11 +18,39 @@ const app = new Hono()
   .get('/', sessionMiddleware, async (ctx) => {
     const { json, status } = ctx;
 
+    const user = ctx.get('user');
+    const databases = ctx.get('databases');
+
+    const members = await databases.listDocuments(
+      ENV.APPWRITE_DATABASE_ID,
+      ENV.APPWRITE_DATABASE_MEMBERS_COLLECTION_ID,
+      // Write a query to appwrite database
+      [Query.equal('userId', user.$id)]
+    );
+
+    if (members.total === 0) {
+      status(200);
+      return json({
+        status: 'success',
+        message: 'Members retrieved successfully!',
+        data: { workspaces: null },
+      });
+    }
+
+    const workspaceIds = members.documents.map((member) => member.workspaceId);
+
+    const workspaces = await databases.listDocuments(
+      ENV.APPWRITE_DATABASE_ID,
+      ENV.APPWRITE_DATABASE_WORKSPACES_COLLECTION_ID,
+      // Write a query to appwrite database for sorting
+      [Query.orderDesc('$createdAt'), Query.contains('$id', workspaceIds)]
+    );
+
     status(200);
     return json({
       status: 'success',
-      message: 'Successful!',
-      data: null,
+      message: 'Workspaces retrieved successfully!',
+      data: { workspaces },
     });
   })
   // POST | Create a new workspace
@@ -43,24 +72,23 @@ const app = new Hono()
         // Handle Image uploading to appwrite.
         const bucketId = ENV.APPWRITE_IMAGES_STORAGE_BUCKET_ID;
 
-        const mimeType = await getMimeType(image);
-        const buffer = await image.arrayBuffer();
+        // const mimeType = await getMimeType(image);
+        // const buffer = await image.arrayBuffer();
 
-        const validatedFile = new File([buffer], image.name, {
-          type: mimeType,
-        });
+        // const validatedFile = new File([buffer], image.name, {
+        //   type: mimeType,
+        // });
 
-        const file = await storage.createFile(
-          bucketId,
-          ID.unique(),
-          validatedFile
-        );
+        let imageUrl: string | undefined;
 
-        console.log('File -> ', file);
+        if (image instanceof File) {
+          const file = await storage.createFile(bucketId, ID.unique(), image);
 
-        const arrayBuffer = await storage.getFilePreview(bucketId, file.$id);
-        const imageUrl = bufferToBase64(arrayBuffer, image.type);
+          console.log('File -> ', file);
 
+          const arrayBuffer = await storage.getFilePreview(bucketId, file.$id);
+          imageUrl = bufferToBase64(arrayBuffer, image?.type);
+        }
         const requestPayload = {
           name,
           userId: user.$id,
@@ -72,6 +100,17 @@ const app = new Hono()
           ENV.APPWRITE_DATABASE_WORKSPACES_COLLECTION_ID,
           ID.unique(),
           requestPayload
+        );
+
+        await databases.createDocument(
+          ENV.APPWRITE_DATABASE_ID,
+          ENV.APPWRITE_DATABASE_MEMBERS_COLLECTION_ID,
+          ID.unique(),
+          {
+            userId: user.$id,
+            workspaceId: workspace.$id,
+            role: MemberRole.ADMIN,
+          }
         );
 
         status(201);

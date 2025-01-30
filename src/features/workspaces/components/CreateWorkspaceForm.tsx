@@ -17,6 +17,7 @@ import { ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import React, { useRef } from 'react';
 import { useForm } from 'react-hook-form';
+
 import { z } from 'zod';
 import { useCreateWorkspace } from '../api/useCreateWorkspace';
 import { createWorkspaceSchema } from '../schemas';
@@ -46,9 +47,15 @@ export default function CreateWorkspaceForm({
       image: values.image instanceof File ? values.image : '',
     };
 
-    handleCreateWorkspace({ form: finalValues });
-
-    form.reset();
+    handleCreateWorkspace(
+      { form: finalValues },
+      {
+        onSuccess: () => {
+          form.reset();
+          // TODO: Redirect to the new workspace page
+        },
+      }
+    );
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
