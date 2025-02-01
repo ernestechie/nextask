@@ -3,7 +3,7 @@ import { ReactQueryKey } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 
 export const useGetWorkspaces = () => {
-  const query = useQuery({
+  return useQuery({
     queryKey: [ReactQueryKey.workspaces],
     queryFn: async () => {
       const response = await client.api.workspaces.$get();
@@ -15,6 +15,4 @@ export const useGetWorkspaces = () => {
       return data;
     },
   });
-
-  return query;
 };

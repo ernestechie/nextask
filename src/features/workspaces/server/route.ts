@@ -2,6 +2,7 @@ import { ENV } from '@/lib/env';
 import { sessionMiddleware } from '@/lib/session-middleware';
 // import { getMimeType } from '@/lib/utils';
 import { MemberRole } from '@/features/members/types';
+import { getMember } from '@/features/members/utils';
 import { generateInviteCode } from '@/lib/utils';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
@@ -61,9 +62,7 @@ const app = new Hono()
     sessionMiddleware,
     async ({ json, status, req, get }) => {
       try {
-        const body = req.valid('form');
-
-        const { name, image } = body;
+        const { name, image } = req.valid('form');
 
         // Get the entities from current user session
         const user = get('user');
@@ -132,6 +131,76 @@ const app = new Hono()
           status: 'fail',
           message,
           data: { workspace: null },
+        });
+      }
+    }
+  )
+  .patch(
+    '/:workspaceId',
+    zValidator('form', createWorkspaceSchema),
+    sessionMiddleware,
+    async ({ json, status, req, get }) => {
+      try {
+        const { name, image } = req.valid('form');
+        const { workspaceId } = req.param();
+
+        const bucketId = ENV.APPWRITE_IMAGES_STORAGE_BUCKET_ID;
+
+        // Get the entities from current user session
+        const user = get('user');
+        const storage = get('storage');
+        const databases = get('databases');
+
+        const member = await getMember({
+          databases,
+          userId: user.$id,
+          workspaceId,
+        });
+
+        console.log('Member -> ', member);
+
+        if (!member || member.role !== MemberRole.ADMIN)
+          throw new Error('You are not authorized to perform this action!');
+
+        let imageUrl: string | undefined;
+
+        if (image instanceof File) {
+          const file = await storage.createFile(bucketId, ID.unique(), image);
+
+          console.log('File -> ', file);
+
+          const arrayBuffer = await storage.getFilePreview(bucketId, file.$id);
+          imageUrl = bufferToBase64(arrayBuffer, image?.type);
+        } else {
+          imageUrl = image;
+        }
+
+        const workspace = await databases.updateDocument(
+          ENV.APPWRITE_DATABASE_ID,
+          ENV.APPWRITE_DATABASE_WORKSPACES_COLLECTION_ID,
+          workspaceId,
+          {
+            name,
+            imageUrl,
+          }
+        );
+
+        status(204);
+        return json({
+          status: 'success',
+          message: 'Member Updated Successfully!',
+          data: { workspace },
+        });
+      } catch (err) {
+        console.log('Error -> ', err);
+        const message =
+          err instanceof Error ? err.message : 'Unexpected error occurred';
+
+        status(400);
+        return json({
+          status: 'fail',
+          message,
+          data: null,
         });
       }
     }
