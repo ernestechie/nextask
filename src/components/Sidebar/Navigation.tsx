@@ -12,7 +12,7 @@ import {
 const routes = [
   {
     label: 'Home',
-    href: '',
+    href: '/',
     icons: {
       default: GoHome,
       active: GoHomeFill,

@@ -2,6 +2,7 @@ import { ENV } from '@/lib/env';
 import { sessionMiddleware } from '@/lib/session-middleware';
 // import { getMimeType } from '@/lib/utils';
 import { MemberRole } from '@/features/members/types';
+import { generateInviteCode } from '@/lib/utils';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { ID, Query } from 'node-appwrite';
@@ -89,10 +90,12 @@ const app = new Hono()
           const arrayBuffer = await storage.getFilePreview(bucketId, file.$id);
           imageUrl = bufferToBase64(arrayBuffer, image?.type);
         }
+
         const requestPayload = {
           name,
           userId: user.$id,
           imageUrl,
+          inviteCode: generateInviteCode(10),
         };
 
         const workspace = await databases.createDocument(
@@ -128,6 +131,7 @@ const app = new Hono()
         return json({
           status: 'fail',
           message,
+          data: { workspace: null },
         });
       }
     }

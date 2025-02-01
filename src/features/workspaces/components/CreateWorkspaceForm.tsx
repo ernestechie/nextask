@@ -18,6 +18,7 @@ import Image from 'next/image';
 import React, { useRef } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { useCreateWorkspace } from '../api/useCreateWorkspace';
 import { createWorkspaceSchema } from '../schemas';
@@ -31,6 +32,7 @@ type CreateWorkspaceFormValues = z.infer<typeof createWorkspaceSchema>;
 export default function CreateWorkspaceForm({
   onCancel,
 }: CreateWorkspaceFormProps) {
+  const router = useRouter();
   const ref = useRef<HTMLInputElement>(null);
   const { mutate: handleCreateWorkspace, isPending } = useCreateWorkspace();
 
@@ -50,9 +52,9 @@ export default function CreateWorkspaceForm({
     handleCreateWorkspace(
       { form: finalValues },
       {
-        onSuccess: () => {
+        onSuccess: ({ data }) => {
           form.reset();
-          // TODO: Redirect to the new workspace page
+          router.push(`/workspaces/${data.workspace?.$id}`);
         },
       }
     );
