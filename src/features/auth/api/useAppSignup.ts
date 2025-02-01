@@ -1,6 +1,7 @@
 import { client } from '@/lib/rpc';
 import { useMutation } from '@tanstack/react-query';
 import { InferRequestType, InferResponseType } from 'hono';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 type ResponseType = InferResponseType<
@@ -11,6 +12,7 @@ type RequestType = InferRequestType<
 >;
 
 export const useAppSignup = () => {
+  const router = useRouter();
   const signupMutation = useMutation<ResponseType, Error, RequestType>({
     mutationFn: async ({ json }) => {
       const response = await client.api.auth['sign-up']['$post']({ json });
@@ -22,6 +24,7 @@ export const useAppSignup = () => {
 
     onSuccess() {
       toast.success('Welcome to NexTask!');
+      router.push('/');
     },
     onError(err) {
       toast.error(err.message);

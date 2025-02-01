@@ -6,7 +6,8 @@ import workspacesRoutes from '../../../features/workspaces/server/route';
 export const runtime = 'edge';
 const app = new Hono().basePath('/api');
 
-export const routes = app
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const routes = app
   .route('/auth', authRoutes)
   .route('/workspaces', workspacesRoutes);
 

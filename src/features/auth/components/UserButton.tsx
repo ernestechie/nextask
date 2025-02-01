@@ -1,10 +1,10 @@
 'use client';
 
 import { Loader, LogOut } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { DottedSeparator } from '@/components/base/DottedSeparator';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +18,15 @@ import { useAppLogout } from '../api/useLogout';
 export default function UserButton() {
   const { isLoading, data } = useCurrentUser();
   const { mutate: logout } = useAppLogout();
+  const [avatarFallback, setAvatarFallback] = useState('');
+
+  useEffect(() => {
+    const avatarText = data?.user.name
+      ? (data?.user.name).charAt(0).toUpperCase()
+      : (data?.user.email || '').charAt(0).toUpperCase() || 'U';
+
+    setAvatarFallback(avatarText);
+  }, [data?.user.email, data?.user.name]);
 
   if (isLoading)
     return (
@@ -27,12 +36,6 @@ export default function UserButton() {
     );
 
   if (!isLoading && !data?.user) return null;
-
-  const { name, email } = data?.user;
-
-  const avatarFallback = name
-    ? name.charAt(0).toUpperCase()
-    : email.charAt(0).toUpperCase() ?? 'U';
 
   return (
     <DropdownMenu modal={false}>
@@ -60,9 +63,9 @@ export default function UserButton() {
 
           <div className='flex flex-col items-center justify-center'>
             <p className='font-semibold text-neutral-900 text-sm'>
-              {name || 'User'}
+              {data?.user.name || 'User'}
             </p>
-            <p className='text-xs text-neutral-600'>{email}</p>
+            <p className='text-xs text-neutral-600'>{data?.user.email}</p>
           </div>
         </div>
 

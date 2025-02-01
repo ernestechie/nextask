@@ -1,14 +1,16 @@
 'use client';
 import { MenuIcon } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+
 import React, { useEffect } from 'react';
+import WorkspaceSwitcher from '../../features/workspaces/components/WorkspaceSwitcher';
+import { DottedSeparator } from '../base/DottedSeparator';
+import Logo from '../Logo';
 import { Button } from '../ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
 import Navigation from './Navigation';
 
 export default function MobileSidebar() {
   const [modalOpen, setModalOpen] = React.useState(false);
-  const pathname = usePathname();
 
   useEffect(() => {
     setModalOpen(false);
@@ -23,6 +25,10 @@ export default function MobileSidebar() {
       </SheetTrigger>
 
       <SheetContent side='left' className=''>
+        <Logo />
+        <DottedSeparator className='my-4' />
+        <WorkspaceSwitcher />
+        <DottedSeparator className='my-4' />
         <Navigation />
       </SheetContent>
     </Sheet>

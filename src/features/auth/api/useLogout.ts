@@ -20,7 +20,9 @@ export const useAppLogout = () => {
     },
     onSuccess() {
       router.refresh();
+      router.push('/');
       queryClient.invalidateQueries({ queryKey: [ReactQueryKey.current_user] });
+      queryClient.invalidateQueries({ queryKey: [ReactQueryKey.workspaces] });
     },
     onError() {
       toast.error('Unexpected error occured');
