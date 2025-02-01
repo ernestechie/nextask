@@ -52,9 +52,20 @@ export const updateWorkspaceSchema = z.object({
     .max(256)
     .optional(),
   image: z
-    .union([
-      z.instanceof(File),
-      z.string().transform((value) => value || undefined),
-    ])
-    .optional(),
+    .any()
+    .optional()
+    .refine((file) => {
+      if (!file) return `Please attach a valid image.`;
+      if (file?.size <= MAX_FILE_SIZE) return `Max image size is 5MB.`;
+    })
+    .refine(
+      (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
+      'Only .jpg, .jpeg, .png and .webp formats are supported.'
+    )
+    .or(
+      z
+        .string()
+        .transform((value) => value || undefined)
+        .optional()
+    ),
 });

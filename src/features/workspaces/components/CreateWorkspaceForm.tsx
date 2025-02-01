@@ -22,43 +22,72 @@ import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { useCreateWorkspace } from '../api/useCreateWorkspace';
-import { createWorkspaceSchema } from '../schemas';
+import { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas';
+
+import { useUpdateWorkspace } from '../api/useUpdateWorkspace';
+import { NextaskWorkspace } from '../types';
 
 type CreateWorkspaceFormProps = {
   onCancel?: () => void;
+  mode?: 'CREATE' | 'UPDATE';
+  initialValues?: NextaskWorkspace;
 };
 
 type CreateWorkspaceFormValues = z.infer<typeof createWorkspaceSchema>;
+type UpdateWorkspaceFormValues = z.infer<typeof updateWorkspaceSchema>;
 
 export default function CreateWorkspaceForm({
   onCancel,
+  mode = 'CREATE',
+  initialValues,
 }: CreateWorkspaceFormProps) {
   const router = useRouter();
   const ref = useRef<HTMLInputElement>(null);
-  const { mutate: handleCreateWorkspace, isPending } = useCreateWorkspace();
+  const { mutate: handleCreateWorkspace, isPending: isCreating } =
+    useCreateWorkspace();
+  const { mutate: handleUpdateWorkspace, isPending: isUpdating } =
+    useUpdateWorkspace();
 
-  const form = useForm<CreateWorkspaceFormValues>({
-    resolver: zodResolver(createWorkspaceSchema),
+  const form = useForm<CreateWorkspaceFormValues | UpdateWorkspaceFormValues>({
+    resolver: zodResolver(
+      mode === 'CREATE' ? createWorkspaceSchema : updateWorkspaceSchema
+    ),
     defaultValues: {
-      name: '',
+      name: initialValues?.name,
+      image: initialValues?.imageUrl,
     },
   });
 
-  const onSubmit = (values: CreateWorkspaceFormValues) => {
+  const onSubmit = (
+    values: CreateWorkspaceFormValues | UpdateWorkspaceFormValues
+  ) => {
     const finalValues = {
       ...values,
       image: values.image instanceof File ? values.image : '',
     };
 
-    handleCreateWorkspace(
-      { form: finalValues },
-      {
-        onSuccess: ({ data }) => {
-          form.reset();
-          router.push(`/workspaces/${data.workspace?.$id}`);
+    if (mode === 'UPDATE' && initialValues?.$id)
+      handleUpdateWorkspace(
+        {
+          form: finalValues,
+          param: {
+            workspaceId: initialValues?.$id,
+          },
         },
-      }
-    );
+        {
+          onSuccess: () => form.reset(),
+        }
+      );
+    else if (mode === 'CREATE' && finalValues.name)
+      handleCreateWorkspace(
+        { form: finalValues },
+        {
+          onSuccess: ({ data }) => {
+            form.reset();
+            router.push(`/workspaces/${data.workspace?.$id}`);
+          },
+        }
+      );
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +100,9 @@ export default function CreateWorkspaceForm({
   return (
     <Card className='w-full h-full shadow-none'>
       <CardHeader className='flex p-7'>
-        <CardTitle>Create a new workspace</CardTitle>
+        <CardTitle>
+          {mode === 'CREATE' ? 'Create a new ' : 'Edit '} workspace
+        </CardTitle>
       </CardHeader>
       <div className='px-7'>
         <DottedSeparator />
@@ -148,12 +179,12 @@ export default function CreateWorkspaceForm({
                           ref={ref}
                           accept='.jpg, .png, .jpeg, .svg'
                           onChange={handleImageChange}
-                          disabled={isPending}
+                          disabled={isCreating || isUpdating}
                         />
                         <Button
                           type='button'
                           variant='tertiary'
-                          disabled={isPending}
+                          disabled={isCreating || isUpdating}
                           size='extra_small'
                           className='w-fit mt-2'
                           onClick={() => ref.current?.click()}
@@ -174,13 +205,21 @@ export default function CreateWorkspaceForm({
                 size='large'
                 variant='secondary'
                 onClick={onCancel}
-                disabled={isPending}
+                disabled={isCreating || isUpdating}
                 className={cn(onCancel ? 'visible' : 'invisible')}
               >
                 Cancel
               </Button>
-              <Button type='submit' size='large' disabled={isPending}>
-                {isPending ? 'Loading...' : 'Create Workspace'}
+              <Button
+                type='submit'
+                size='large'
+                disabled={isCreating || isUpdating}
+              >
+                {mode === 'CREATE' ? (
+                  <span>{isUpdating ? 'Loading...' : 'Create Workspace'}</span>
+                ) : (
+                  <span>{isUpdating ? 'Loading...' : 'Update Workspace'}</span>
+                )}
               </Button>
             </div>
           </form>

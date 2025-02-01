@@ -7,7 +7,7 @@ import { generateInviteCode } from '@/lib/utils';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { ID, Query } from 'node-appwrite';
-import { createWorkspaceSchema } from '../schemas';
+import { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas';
 
 const bufferToBase64 = (input: ArrayBuffer, type: string): string => {
   const buffer = Buffer.from(input);
@@ -137,7 +137,7 @@ const app = new Hono()
   )
   .patch(
     '/:workspaceId',
-    zValidator('form', createWorkspaceSchema),
+    zValidator('form', updateWorkspaceSchema),
     sessionMiddleware,
     async ({ json, status, req, get }) => {
       try {
