@@ -33,7 +33,7 @@ const app = new Hono()
       status(200);
       return json({
         status: 'success',
-        message: 'Members retrieved successfully!',
+        message: 'No members found for this user',
         data: { workspaces: null },
       });
     }

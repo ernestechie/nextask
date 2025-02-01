@@ -18,6 +18,7 @@ import Image from 'next/image';
 import React, { useRef } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { useCreateWorkspace } from '../api/useCreateWorkspace';
@@ -174,6 +175,7 @@ export default function CreateWorkspaceForm({
                 variant='secondary'
                 onClick={onCancel}
                 disabled={isPending}
+                className={cn(onCancel ? 'visible' : 'invisible')}
               >
                 Cancel
               </Button>
