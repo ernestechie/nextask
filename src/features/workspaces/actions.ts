@@ -1,21 +1,15 @@
 'use server';
 
 import { ENV } from '@/lib/env';
-import { cookies } from 'next/headers';
-import { Account, Client, Databases, Query } from 'node-appwrite';
-import { AUTH_COOKIE } from '../auth/constants';
+import createClientSession from '@/lib/session';
+import { Account, Databases, Query } from 'node-appwrite';
+import { getCurrentUser } from '../auth/actions';
+import { getMember } from '../members/utils';
+import { NextaskWorkspace } from './types';
 
 export const getWorkspaces = async () => {
   try {
-    const client = new Client()
-      .setEndpoint(ENV.APPWRITE_ENDPOINT)
-      .setProject(ENV.APPWRITE_PROJECT_ID);
-
-    const session = cookies().get(AUTH_COOKIE);
-
-    if (!session) return { workspaces: { documents: [], total: 0 } };
-
-    client.setSession(session?.value);
+    const client = await createClientSession();
 
     const account = new Account(client);
     const databases = new Databases(client);
@@ -46,5 +40,37 @@ export const getWorkspaces = async () => {
   } catch (error) {
     console.log(error);
     return { documents: [], total: 0 };
+  }
+};
+
+export const getWorkspace = async (
+  workspaceId: string
+): Promise<NextaskWorkspace | null> => {
+  try {
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) return null;
+
+    const client = await createClientSession();
+    const databases = new Databases(client);
+
+    const userId = currentUser.$id;
+
+    const member = await getMember({
+      databases,
+      userId,
+      workspaceId,
+    });
+
+    if (!member) return null;
+
+    return await databases.getDocument<NextaskWorkspace>(
+      ENV.APPWRITE_DATABASE_ID,
+      ENV.APPWRITE_DATABASE_WORKSPACES_COLLECTION_ID,
+      workspaceId
+    );
+  } catch (error) {
+    console.log(error);
+    return null;
   }
 };

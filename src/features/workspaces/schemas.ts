@@ -21,26 +21,30 @@ const ACCEPTED_IMAGE_TYPES = [
   'image/avif',
 ];
 
+const fileSchema = z
+  .any()
+  .refine((file) => {
+    if (!file) return `Please attach a valid image.`;
+    if (file?.size <= MAX_FILE_SIZE) return `Max image size is 5MB.`;
+  })
+  .refine(
+    (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
+    'Only .jpg, .jpeg, .png and .webp formats are supported.'
+  )
+  .or(z.string().transform((value) => value || undefined))
+  .optional();
+
+const imageSchema = z
+  .instanceof(File)
+  .refine(
+    (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
+    'Only .jpg, .jpeg, .png and .webp formats are supported.'
+  );
+
 export const createWorkspaceSchema = z.object({
   name: z.string().trim().min(1, 'Workspace name is required').max(256),
-  // image: z
-  //   .any()
-  //   .refine((file) => {
-  //     if (!file) return `Please attach a valid image.`;
-  //     if (file?.size <= MAX_FILE_SIZE) return `Max image size is 5MB.`;
-  //   })
-  //   .refine(
-  //     (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
-  //     'Only .jpg, .jpeg, .png and .webp formats are supported.'
-  //   )
-  //   .or(z.string().transform((value) => value || undefined))
-  //   .optional(),
-
   image: z
-    .union([
-      z.instanceof(File),
-      z.string().transform((value) => value || undefined),
-    ])
+    .union([imageSchema, z.string().transform((value) => value || undefined)])
     .optional(),
 });
 
@@ -52,20 +56,6 @@ export const updateWorkspaceSchema = z.object({
     .max(256)
     .optional(),
   image: z
-    .any()
-    .optional()
-    .refine((file) => {
-      if (!file) return `Please attach a valid image.`;
-      if (file?.size <= MAX_FILE_SIZE) return `Max image size is 5MB.`;
-    })
-    .refine(
-      (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
-      'Only .jpg, .jpeg, .png and .webp formats are supported.'
-    )
-    .or(
-      z
-        .string()
-        .transform((value) => value || undefined)
-        .optional()
-    ),
+    .union([imageSchema, z.string().transform((value) => value || undefined)])
+    .optional(),
 });
