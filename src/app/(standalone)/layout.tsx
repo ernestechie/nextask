@@ -15,7 +15,7 @@ export default function StandaloneLayout({ children }: StandaloneLayoutProps) {
           <Logo />
           <UserButton />
         </nav>
-        <div className='flex flex-col items-center justify-center py-4'>
+        <div className='flex flex-col w-full items-center justify-center py-4'>
           {children}
         </div>
       </div>

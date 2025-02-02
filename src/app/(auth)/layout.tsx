@@ -32,7 +32,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           </Button>
         </nav>
 
-        <div className='flex flex-col items-center justify-center gap-2 pt-4 md:p-14'>
+        <div className='flex flex-col items-center justify-center gap-2 pt-4 md:p-14 w-full'>
           {children}
         </div>
       </div>

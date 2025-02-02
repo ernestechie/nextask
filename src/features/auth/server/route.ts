@@ -24,10 +24,8 @@ const app = new Hono()
   // POST / Login
   .post('/login', zValidator('json', loginSchema), async (ctx) => {
     const { json, status, req } = ctx;
-
     // Validate the request body
-    const body = req.valid('json');
-    const { email, password } = body;
+    const { email, password } = req.valid('json');
 
     try {
       // Create a new Appwrite client
@@ -61,9 +59,7 @@ const app = new Hono()
   // POST / Sign up
   .post('/sign-up', zValidator('json', signupSchema), async (ctx) => {
     const { json, status, req } = ctx;
-
-    const body = req.valid('json');
-    const { email, password, fullName } = body;
+    const { email, password, fullName } = req.valid('json');
 
     try {
       const { account } = await createAdminClient();

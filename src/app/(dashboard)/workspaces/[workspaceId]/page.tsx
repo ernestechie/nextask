@@ -1,6 +1,6 @@
-import { getWorkspaces } from '@/features/workspaces/actions';
-import CreateWorkspaceForm from '@/features/workspaces/components/CreateWorkspaceForm';
-import { NextaskWorkspace } from '@/features/workspaces/types';
+import { getWorkspace } from '@/features/workspaces/actions';
+
+import { redirect } from 'next/navigation';
 import React from 'react';
 
 export default async function WorkspaceDetailsPage({
@@ -8,17 +8,13 @@ export default async function WorkspaceDetailsPage({
 }: {
   params: { workspaceId: string };
 }) {
-  const workspaces = await getWorkspaces();
+  const workspace = await getWorkspace(workspaceId);
 
-  if (!workspaces.documents || workspaces.total === 0)
-    return <p>No workspaces</p>;
+  if (!workspace) redirect('/');
 
   return (
     <div>
-      <CreateWorkspaceForm
-        initialValues={workspaces.documents[0] as NextaskWorkspace}
-        mode='UPDATE'
-      />
+      <p>Workspace: {workspaceId}</p>
     </div>
   );
 }

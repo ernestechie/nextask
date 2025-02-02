@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ImageIcon } from 'lucide-react';
+import { ArrowLeftIcon, ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import React, { useRef } from 'react';
 import { useForm } from 'react-hook-form';
@@ -43,6 +43,7 @@ export default function CreateWorkspaceForm({
 }: CreateWorkspaceFormProps) {
   const router = useRouter();
   const ref = useRef<HTMLInputElement>(null);
+
   const { mutate: handleCreateWorkspace, isPending: isCreating } =
     useCreateWorkspace();
   const { mutate: handleUpdateWorkspace, isPending: isUpdating } =
@@ -54,7 +55,7 @@ export default function CreateWorkspaceForm({
     ),
     defaultValues: {
       name: initialValues?.name,
-      image: initialValues?.imageUrl,
+      image: initialValues?.imageUrl ?? '',
     },
   });
 
@@ -75,12 +76,14 @@ export default function CreateWorkspaceForm({
           },
         },
         {
-          onSuccess: () => form.reset(),
+          onSuccess: () => {
+            form.reset();
+          },
         }
       );
     else if (mode === 'CREATE' && finalValues.name)
       handleCreateWorkspace(
-        { form: finalValues },
+        { form: finalValues as CreateWorkspaceFormValues },
         {
           onSuccess: ({ data }) => {
             form.reset();
@@ -99,7 +102,17 @@ export default function CreateWorkspaceForm({
 
   return (
     <Card className='w-full h-full shadow-none'>
-      <CardHeader className='flex p-7'>
+      <CardHeader className='p-7 flex flex-row items-center gap-x-4 space-y-0'>
+        {mode === 'UPDATE' && (
+          <Button
+            size='small'
+            variant='secondary'
+            onClick={() => (onCancel ? onCancel() : router.back())}
+          >
+            Back
+            <ArrowLeftIcon className='size-4 mr-4' />
+          </Button>
+        )}
         <CardTitle>
           {mode === 'CREATE' ? 'Create a new ' : 'Edit '} workspace
         </CardTitle>
@@ -181,16 +194,34 @@ export default function CreateWorkspaceForm({
                           onChange={handleImageChange}
                           disabled={isCreating || isUpdating}
                         />
-                        <Button
-                          type='button'
-                          variant='tertiary'
-                          disabled={isCreating || isUpdating}
-                          size='extra_small'
-                          className='w-fit mt-2'
-                          onClick={() => ref.current?.click()}
-                        >
-                          Upload Image
-                        </Button>
+                        {field.value ? (
+                          <Button
+                            type='button'
+                            variant='destructive'
+                            disabled={isCreating || isUpdating}
+                            size='extra_small'
+                            className='w-fit mt-2'
+                            onClick={() => {
+                              field.onChange(null);
+                              if (ref.current) {
+                                ref.current.value = '';
+                              }
+                            }}
+                          >
+                            Remove Image
+                          </Button>
+                        ) : (
+                          <Button
+                            type='button'
+                            variant='tertiary'
+                            disabled={isCreating || isUpdating}
+                            size='extra_small'
+                            className='w-fit mt-2'
+                            onClick={() => ref.current?.click()}
+                          >
+                            {field.value ? 'Change' : 'Upload'} Image
+                          </Button>
+                        )}
                       </div>
                       <FormMessage />
                     </>
@@ -218,7 +249,7 @@ export default function CreateWorkspaceForm({
                 {mode === 'CREATE' ? (
                   <span>{isUpdating ? 'Loading...' : 'Create Workspace'}</span>
                 ) : (
-                  <span>{isUpdating ? 'Loading...' : 'Update Workspace'}</span>
+                  <span>{isUpdating ? 'Loading...' : 'Save Changes'}</span>
                 )}
               </Button>
             </div>

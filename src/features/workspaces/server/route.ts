@@ -157,8 +157,6 @@ const app = new Hono()
           workspaceId,
         });
 
-        console.log('Member -> ', member);
-
         if (!member || member.role !== MemberRole.ADMIN)
           throw new Error('You are not authorized to perform this action!');
 
@@ -166,8 +164,6 @@ const app = new Hono()
 
         if (image instanceof File) {
           const file = await storage.createFile(bucketId, ID.unique(), image);
-
-          console.log('File -> ', file);
 
           const arrayBuffer = await storage.getFilePreview(bucketId, file.$id);
           imageUrl = bufferToBase64(arrayBuffer, image?.type);
@@ -185,10 +181,10 @@ const app = new Hono()
           }
         );
 
-        status(204);
+        status(200);
         return json({
           status: 'success',
-          message: 'Member Updated Successfully!',
+          message: 'Workspace Updated Successfully!',
           data: { workspace },
         });
       } catch (err) {
