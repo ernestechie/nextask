@@ -15,10 +15,9 @@ export const useDeleteWorkspace = () => {
   const queryClient = useQueryClient();
 
   return useMutation<ResponseType, Error, RequestType>({
-    mutationFn: async ({ param, form }) => {
-      const response = await client.api.workspaces[':workspaceId'].$patch({
+    mutationFn: async ({ param }) => {
+      const response = await client.api.workspaces[':workspaceId'].$delete({
         param,
-        form,
       });
 
       if (!response.ok) throw new Error('Failed to delete workspace');

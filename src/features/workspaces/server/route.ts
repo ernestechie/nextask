@@ -203,7 +203,6 @@ const app = new Hono()
   )
   .delete(
     '/:workspaceId',
-    zValidator('form', updateWorkspaceSchema),
     sessionMiddleware,
     async ({ json, status, req, get }) => {
       try {

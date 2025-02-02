@@ -25,6 +25,7 @@ import useConfirm from '@/hooks/useConfirm';
 import { cn } from '@/lib/utils';
 
 import { useCreateWorkspace } from '../api/useCreateWorkspace';
+import { useDeleteWorkspace } from '../api/useDeleteWorkspace';
 import { useUpdateWorkspace } from '../api/useUpdateWorkspace';
 import { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas';
 import { NextaskWorkspace } from '../types';
@@ -52,10 +53,12 @@ export default function CreateWorkspaceForm({
     variant: 'destructive',
   });
 
-  const { mutate: handleCreateWorkspace, isPending: isCreating } =
+  const { mutate: createWorkspace, isPending: isCreating } =
     useCreateWorkspace();
-  const { mutate: handleUpdateWorkspace, isPending: isUpdating } =
+  const { mutate: updateWorkspace, isPending: isUpdating } =
     useUpdateWorkspace();
+  const { mutate: deleteWorkspace, isPending: isDeleting } =
+    useDeleteWorkspace();
 
   const form = useForm<CreateWorkspaceFormValues | UpdateWorkspaceFormValues>({
     resolver: zodResolver(
@@ -76,7 +79,7 @@ export default function CreateWorkspaceForm({
     };
 
     if (mode === 'UPDATE' && initialValues?.$id)
-      handleUpdateWorkspace(
+      updateWorkspace(
         {
           form: finalValues,
           param: {
@@ -84,21 +87,36 @@ export default function CreateWorkspaceForm({
           },
         },
         {
-          onSuccess: () => {
+          onSuccess() {
             form.reset();
           },
         }
       );
     else if (mode === 'CREATE' && finalValues.name)
-      handleCreateWorkspace(
+      createWorkspace(
         { form: finalValues as CreateWorkspaceFormValues },
         {
-          onSuccess: ({ data }) => {
+          onSuccess({ data }) {
             form.reset();
             router.push(`/workspaces/${data.workspace?.$id}`);
           },
         }
       );
+  };
+
+  const handleDeleteWorkspace = async () => {
+    const okay = await confirmDelete();
+
+    if (!okay || !initialValues || initialValues.$id === '') return;
+
+    deleteWorkspace(
+      { param: { workspaceId: initialValues.$id } },
+      {
+        onSuccess() {
+          router.push(`/`);
+        },
+      }
+    );
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -284,8 +302,8 @@ export default function CreateWorkspaceForm({
                   size='small'
                   variant='destructive'
                   type='button'
-                  disabled={isCreating || isUpdating}
-                  onClick={confirmDelete}
+                  disabled={isDeleting}
+                  onClick={handleDeleteWorkspace}
                 >
                   Delete Workspace
                 </Button>
