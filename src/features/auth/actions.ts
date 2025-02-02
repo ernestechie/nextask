@@ -16,7 +16,8 @@ export const createClientSession = async () => {
   if (!session || !session.value)
     throw new Error('You are not authorized to use this function.');
 
-  client.setSession(session?.value);
+  client.setSession(session.value);
+
   return {
     get account() {
       return new Account(client);
@@ -32,9 +33,9 @@ export const createClientSession = async () => {
 
 export const getCurrentUser = async () => {
   try {
-    const session = await createClientSession();
+    const { account } = await createClientSession();
 
-    return session.account.get();
+    return account.get();
   } catch (error) {
     console.log(error);
     return null;
