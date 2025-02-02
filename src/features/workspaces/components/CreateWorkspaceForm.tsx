@@ -194,16 +194,34 @@ export default function CreateWorkspaceForm({
                           onChange={handleImageChange}
                           disabled={isCreating || isUpdating}
                         />
-                        <Button
-                          type='button'
-                          variant='tertiary'
-                          disabled={isCreating || isUpdating}
-                          size='extra_small'
-                          className='w-fit mt-2'
-                          onClick={() => ref.current?.click()}
-                        >
-                          {field.value ? 'Change' : 'Upload'} Image
-                        </Button>
+                        {field.value ? (
+                          <Button
+                            type='button'
+                            variant='destructive'
+                            disabled={isCreating || isUpdating}
+                            size='extra_small'
+                            className='w-fit mt-2'
+                            onClick={() => {
+                              field.onChange(null);
+                              if (ref.current) {
+                                ref.current.value = '';
+                              }
+                            }}
+                          >
+                            Remove Image
+                          </Button>
+                        ) : (
+                          <Button
+                            type='button'
+                            variant='tertiary'
+                            disabled={isCreating || isUpdating}
+                            size='extra_small'
+                            className='w-fit mt-2'
+                            onClick={() => ref.current?.click()}
+                          >
+                            {field.value ? 'Change' : 'Upload'} Image
+                          </Button>
+                        )}
                       </div>
                       <FormMessage />
                     </>

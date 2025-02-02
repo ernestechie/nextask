@@ -1,9 +1,8 @@
 'use server';
 
 import { ENV } from '@/lib/env';
-import createClientSession from '@/lib/session';
 import { Account, Databases, Query } from 'node-appwrite';
-import { getCurrentUser } from '../auth/actions';
+import { createClientSession, getCurrentUser } from '../auth/actions';
 import { getMember } from '../members/utils';
 import { NextaskWorkspace } from './types';
 
