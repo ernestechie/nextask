@@ -1,4 +1,13 @@
 'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ArrowLeftIcon, ImageIcon } from 'lucide-react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import React, { useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
 import { DottedSeparator } from '@/components/base/DottedSeparator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -12,19 +21,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeftIcon, ImageIcon } from 'lucide-react';
-import Image from 'next/image';
-import React, { useRef } from 'react';
-import { useForm } from 'react-hook-form';
-
+import useConfirm from '@/hooks/useConfirm';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
-import { z } from 'zod';
-import { useCreateWorkspace } from '../api/useCreateWorkspace';
-import { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas';
 
+import { useCreateWorkspace } from '../api/useCreateWorkspace';
 import { useUpdateWorkspace } from '../api/useUpdateWorkspace';
+import { createWorkspaceSchema, updateWorkspaceSchema } from '../schemas';
 import { NextaskWorkspace } from '../types';
 
 type CreateWorkspaceFormProps = {
@@ -41,8 +43,14 @@ export default function CreateWorkspaceForm({
   mode = 'CREATE',
   initialValues,
 }: CreateWorkspaceFormProps) {
-  const router = useRouter();
   const ref = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+
+  const [DeleteModal, confirmDelete] = useConfirm({
+    title: 'Delete Workspace',
+    message: 'This action is irreversible and will remove all associated data',
+    variant: 'destructive',
+  });
 
   const { mutate: handleCreateWorkspace, isPending: isCreating } =
     useCreateWorkspace();
@@ -95,167 +103,197 @@ export default function CreateWorkspaceForm({
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      form.setValue('image', file);
-    }
+    if (file) form.setValue('image', file);
   };
 
   return (
-    <Card className='w-full h-full shadow-none'>
-      <CardHeader className='p-7 flex flex-row items-center gap-x-4 space-y-0'>
-        {mode === 'UPDATE' && (
-          <Button
-            size='small'
-            variant='secondary'
-            onClick={() => (onCancel ? onCancel() : router.back())}
-          >
-            Back
-            <ArrowLeftIcon className='size-4 mr-4' />
-          </Button>
-        )}
-        <CardTitle>
-          {mode === 'CREATE' ? 'Create a new ' : 'Edit '} workspace
-        </CardTitle>
-      </CardHeader>
-      <div className='px-7'>
-        <DottedSeparator />
-      </div>
+    <div className='flex flex-col gap-y-4'>
+      <Card className='w-full h-full shadow-none'>
+        <CardHeader className='p-7 flex flex-row items-center gap-x-4 space-y-0'>
+          {mode === 'UPDATE' && (
+            <Button
+              size='small'
+              variant='secondary'
+              onClick={() => (onCancel ? onCancel() : router.back())}
+            >
+              Back
+              <ArrowLeftIcon className='size-4 mr-4' />
+            </Button>
+          )}
+          <CardTitle>
+            {mode === 'CREATE' ? 'Create a new ' : 'Edit '} workspace
+          </CardTitle>
+        </CardHeader>
+        <div className='px-7'>
+          <DottedSeparator />
+        </div>
 
-      {/* Card Content */}
-      <CardContent className='p-7'>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className='flex flex-col gap-y-4'>
-              <FormField
-                control={form.control}
-                name='name'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className='font-semibold'>
-                      Workspace Name *
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder='Enter workspace name' />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Image upload */}
-              <FormField
-                control={form.control}
-                name='image'
-                render={({ field }) => {
-                  const src =
-                    field.value instanceof File
-                      ? URL.createObjectURL(field.value)
-                      : `${field.value}`;
-
-                  return (
-                    <>
-                      <div className='flex flex-col gap-y-2 mt-4'>
-                        <div className='flex items-center gap-x-5'>
-                          {field.value ? (
-                            <div className='size-20 relative rounded-md overflow-hidden'>
-                              <Image
-                                src={src}
-                                alt='Logo'
-                                className='object-cover'
-                                width={100}
-                                height={100}
-                              />
-                            </div>
-                          ) : (
-                            <Avatar>
-                              <AvatarFallback>
-                                <ImageIcon className='text-neutral-500' />
-                              </AvatarFallback>
-                            </Avatar>
-                          )}
-
-                          <div className='flex flex-col'>
-                            <p className='text-sm'>Workspace Icon</p>
-                            <p className='text-sm text-muted-foreground'>
-                              JPG, PNG SVG, JPG. Max 1mb
-                            </p>
-                          </div>
-                        </div>
-                        {/* Upload Image Button */}
-
-                        <input
-                          title='Workspace Image'
-                          id='image'
-                          name='image'
-                          type='file'
-                          className='hidden'
-                          ref={ref}
-                          accept='.jpg, .png, .jpeg, .svg'
-                          onChange={handleImageChange}
-                          disabled={isCreating || isUpdating}
-                        />
-                        {field.value ? (
-                          <Button
-                            type='button'
-                            variant='destructive'
-                            disabled={isCreating || isUpdating}
-                            size='extra_small'
-                            className='w-fit mt-2'
-                            onClick={() => {
-                              field.onChange(null);
-                              if (ref.current) {
-                                ref.current.value = '';
-                              }
-                            }}
-                          >
-                            Remove Image
-                          </Button>
-                        ) : (
-                          <Button
-                            type='button'
-                            variant='tertiary'
-                            disabled={isCreating || isUpdating}
-                            size='extra_small'
-                            className='w-fit mt-2'
-                            onClick={() => ref.current?.click()}
-                          >
-                            {field.value ? 'Change' : 'Upload'} Image
-                          </Button>
-                        )}
-                      </div>
+        {/* Card Content */}
+        <CardContent className='p-7'>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <div className='flex flex-col gap-y-4'>
+                <FormField
+                  control={form.control}
+                  name='name'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='font-semibold'>
+                        Workspace Name *
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder='Enter workspace name' />
+                      </FormControl>
                       <FormMessage />
-                    </>
-                  );
-                }}
-              />
-            </div>
-            <DottedSeparator className='py-7' />
-            <div className='flex items-center justify-between'>
-              <Button
-                type='button'
-                size='large'
-                variant='secondary'
-                onClick={onCancel}
-                disabled={isCreating || isUpdating}
-                className={cn(onCancel ? 'visible' : 'invisible')}
-              >
-                Cancel
-              </Button>
-              <Button
-                type='submit'
-                size='large'
-                disabled={isCreating || isUpdating}
-              >
-                {mode === 'CREATE' ? (
-                  <span>{isUpdating ? 'Loading...' : 'Create Workspace'}</span>
-                ) : (
-                  <span>{isUpdating ? 'Loading...' : 'Save Changes'}</span>
-                )}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Image upload */}
+                <FormField
+                  control={form.control}
+                  name='image'
+                  render={({ field }) => {
+                    const src =
+                      field.value instanceof File
+                        ? URL.createObjectURL(field.value)
+                        : `${field.value}`;
+
+                    return (
+                      <>
+                        <div className='flex flex-col gap-y-2 mt-4'>
+                          <div className='flex items-center gap-x-5'>
+                            {field.value ? (
+                              <div className='size-20 relative rounded-md overflow-hidden'>
+                                <Image
+                                  src={src}
+                                  alt='Logo'
+                                  className='object-cover'
+                                  width={100}
+                                  height={100}
+                                />
+                              </div>
+                            ) : (
+                              <Avatar>
+                                <AvatarFallback>
+                                  <ImageIcon className='text-neutral-500' />
+                                </AvatarFallback>
+                              </Avatar>
+                            )}
+
+                            <div className='flex flex-col'>
+                              <p className='text-sm'>Workspace Icon</p>
+                              <p className='text-sm text-muted-foreground'>
+                                JPG, PNG SVG, JPG. Max 1mb
+                              </p>
+                            </div>
+                          </div>
+                          {/* Upload Image Button */}
+
+                          <input
+                            title='Workspace Image'
+                            id='image'
+                            name='image'
+                            type='file'
+                            className='hidden'
+                            ref={ref}
+                            accept='.jpg, .png, .jpeg, .svg'
+                            onChange={handleImageChange}
+                            disabled={isCreating || isUpdating}
+                          />
+                          {field.value ? (
+                            <Button
+                              type='button'
+                              variant='destructive'
+                              disabled={isCreating || isUpdating}
+                              size='extra_small'
+                              className='w-fit mt-2'
+                              onClick={() => {
+                                field.onChange(null);
+                                if (ref.current) {
+                                  ref.current.value = '';
+                                }
+                              }}
+                            >
+                              Remove Image
+                            </Button>
+                          ) : (
+                            <Button
+                              type='button'
+                              variant='tertiary'
+                              disabled={isCreating || isUpdating}
+                              size='extra_small'
+                              className='w-fit mt-2'
+                              onClick={() => ref.current?.click()}
+                            >
+                              {field.value ? 'Change' : 'Upload'} Image
+                            </Button>
+                          )}
+                        </div>
+                        <FormMessage />
+                      </>
+                    );
+                  }}
+                />
+              </div>
+              <DottedSeparator className='py-7' />
+              <div className='flex items-center justify-between'>
+                <Button
+                  type='button'
+                  size='large'
+                  variant='secondary'
+                  onClick={onCancel}
+                  disabled={isCreating || isUpdating}
+                  className={cn(onCancel ? 'visible' : 'invisible')}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type='submit'
+                  size='large'
+                  disabled={isCreating || isUpdating}
+                >
+                  {mode === 'CREATE' ? (
+                    <span>
+                      {isUpdating ? 'Loading...' : 'Create Workspace'}
+                    </span>
+                  ) : (
+                    <span>{isUpdating ? 'Loading...' : 'Save Changes'}</span>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+
+      {mode === 'UPDATE' && (
+        <>
+          <DeleteModal />
+          <Card className='w-full h-full border-none shadow-none'>
+            <CardContent className='p-7'>
+              <div className='flex flex-col'>
+                <h3 className='font-bold'>Danger Zone</h3>
+                <p className='text-sm text-muted-foreground'>
+                  Deleting a workspace is irreversible and will remove all
+                  associated data
+                </p>
+
+                <Button
+                  className='mt-6 w-fit ml-auto'
+                  size='small'
+                  variant='destructive'
+                  type='button'
+                  disabled={isCreating || isUpdating}
+                  onClick={confirmDelete}
+                >
+                  Delete Workspace
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
   );
 }

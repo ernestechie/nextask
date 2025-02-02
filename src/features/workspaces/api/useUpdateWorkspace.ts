@@ -2,7 +2,7 @@ import { client } from '@/lib/rpc';
 import { ReactQueryKey } from '@/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { InferRequestType, InferResponseType } from 'hono';
-import { revalidatePath } from 'next/cache';
+
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 

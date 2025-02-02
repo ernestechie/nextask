@@ -200,6 +200,66 @@ const app = new Hono()
         });
       }
     }
+  )
+  .delete(
+    '/:workspaceId',
+    zValidator('form', updateWorkspaceSchema),
+    sessionMiddleware,
+    async ({ json, status, req, get }) => {
+      try {
+        const { workspaceId } = req.param();
+
+        const bucketId = ENV.APPWRITE_IMAGES_STORAGE_BUCKET_ID;
+
+        // Get the entities from current user session
+        const user = get('user');
+        const storage = get('storage');
+        const databases = get('databases');
+
+        const member = await getMember({
+          databases,
+          userId: user.$id,
+          workspaceId,
+        });
+
+        if (!member || member.role !== MemberRole.ADMIN) {
+          status(401);
+          return json({
+            status: 'fail',
+            message: 'Unauthorized!',
+            data: null,
+          });
+        }
+
+        // TODO: Delete members, projects and tasks.
+
+        await databases.deleteDocument(
+          ENV.APPWRITE_DATABASE_ID,
+          ENV.APPWRITE_DATABASE_WORKSPACES_COLLECTION_ID,
+          workspaceId
+        );
+
+        status(200);
+        return json({
+          status: 'success',
+          message: 'Workspace Deleted Successfully!',
+          data: {
+            workspace: { $id: workspaceId },
+          },
+        });
+      } catch (err) {
+        console.log('Error -> ', err);
+        const message =
+          err instanceof Error ? err.message : 'Unexpected error occurred';
+
+        status(400);
+        return json({
+          status: 'fail',
+          message,
+          data: null,
+        });
+      }
+    }
   );
 
 export default app;
