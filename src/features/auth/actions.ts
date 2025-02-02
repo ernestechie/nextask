@@ -32,9 +32,9 @@ export const createClientSession = async () => {
 
 export const getCurrentUser = async () => {
   try {
-    const session = await createClientSession();
+    const { account } = await createClientSession();
 
-    return session.account.get();
+    return account.get();
   } catch (error) {
     console.log(error);
     return null;
